@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User
@@ -7,19 +7,25 @@ from app.controllers.user_controller import create_user, get_user
 from app.auth.jwt_handler import create_token, verify_token
 from app.core.security import check_password
 from app.schemas.auth_schema import TokenResponse, TokenType, RefreshRequest
+from app.auth.decorators import admin_required
 
 router = APIRouter()
 
 
 @router.post("/register", response_model=UserOut)
-def create(user_data: UserCreate):
+@admin_required
+async def create(request: Request, user_data: UserCreate):
     try:
         user: User = create_user(user_data)
+        return UserOut(
+            id=user.id,
+            username=user.username,
+            access=user.access
+        )
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Username already in use.")
     except Exception:
         raise HTTPException(status_code=400, detail="Failed to register user.")
-    return user
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -28,7 +34,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not check_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    user_data = {"user": str(user.id), "username": user.username}
+    user_data = {"user": str(user.id), "username": user.username, "access": user.access}
     access_token = create_token(user_data, TokenType.ACCESS)
     refresh_token = create_token(user_data, TokenType.REFRESH)
 
@@ -41,7 +47,7 @@ def refresh(request: RefreshRequest):
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    user_data = {"user": payload["user"], "username": payload["username"]}
+    user_data = {"user": payload["user"], "username": payload["username"], "access": user.access}
     return TokenResponse(
         access_token=create_token(user_data, TokenType.ACCESS),
         refresh_token=create_token(user_data, TokenType.REFRESH)
