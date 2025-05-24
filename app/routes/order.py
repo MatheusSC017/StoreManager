@@ -67,8 +67,6 @@ async def update(request: Request, order_id: int, order_data: OrderCreate):
         )
     except HTTPException as exception:
         raise exception
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Error updating order.")
 
 
 @router.delete("/{order_id}", response_model=dict)
@@ -82,8 +80,6 @@ async def delete(request: Request, order_id: int):
             raise HTTPException(status_code=400, detail="Error deleting order.")
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error deleting order.")
 
 
 @router.get("/{order_id}", response_model=OrderOut)
@@ -102,6 +98,4 @@ async def get(request: Request, order_id: int):
         )
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error getting order.")
     return response

@@ -34,8 +34,6 @@ async def create(request: Request, client_data: ClientCreate):
         client: Client = create_client(client_data)
     except IntegrityError:
         raise HTTPException(status_code=400, detail="E-mail already in use.")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Failed to register client.")
     return client
 
 
@@ -55,8 +53,6 @@ async def update(request: Request, client_id: int, client_data: ClientCreate):
         )
     except HTTPException as exception:
         raise exception
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Error updating client.")
 
 
 @router.delete("/{client_id}", response_model=dict)
@@ -70,8 +66,6 @@ async def delete(request: Request, client_id: int):
             raise HTTPException(status_code=400, detail="Error deleting client.")
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error deleting client.")
 
 
 @router.get("/{client_id}", response_model=ClientOut)
@@ -81,8 +75,6 @@ async def get(request: Request, client_id: int):
         client: Client = get_client(client_id)
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error getting client.")
     return ClientOut(
         id=client.id,
         first_name=client.first_name,

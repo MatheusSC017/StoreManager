@@ -26,8 +26,6 @@ async def create(request: Request, product_data: ProductCreate):
         product: Product = create_product(product_data)
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Barcode already in use.")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Failed to register product.")
     return ProductOut.from_orm(product)
 
 
@@ -39,8 +37,6 @@ async def update(request: Request, product_id: int, product_data: ProductCreate)
         return ProductOut.from_orm(product)
     except HTTPException as exception:
         raise exception
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Error updating product.")
 
 
 @router.delete("/{product_id}", response_model=dict)
@@ -54,8 +50,6 @@ async def delete(request: Request, product_id: int):
             raise HTTPException(status_code=400, detail="Error deleting product.")
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error deleting product.")
 
 
 @router.get("/{product_id}", response_model=ProductOut)
@@ -65,6 +59,4 @@ async def get(request: Request, product_id: int):
         product: Product = get_product(product_id)
     except HTTPException as exception:
         raise exception
-    except Exception:
-        raise HTTPException(status_code=400, detail="Error getting product.")
     return ProductOut.from_orm(product)

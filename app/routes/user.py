@@ -24,8 +24,6 @@ async def create(request: Request, user_data: UserCreate):
         )
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Username already in use.")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Failed to register user.")
 
 
 @router.post("/login", response_model=TokenResponse)
