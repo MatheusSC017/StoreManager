@@ -1,16 +1,15 @@
 from sqlalchemy.exc import IntegrityError
 from app.models.product import Product
+from app.auth.authentication import auth_required
 from app.schemas.product_schema import ProductCreate, ProductOut
 from app.controllers.product_controller import create_product, update_product, delete_product, get_product, get_products
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import Depends, APIRouter, HTTPException, Request
 from typing import List
-from app.auth.decorators import auth_required
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ProductOut])
-@auth_required
+@router.get("/", dependencies=[Depends(auth_required)], response_model=List[ProductOut], description="Retrieve all products in stock.")
 async def get_all(request: Request):
     products: List[Product] = get_products()
     response = []
@@ -19,8 +18,7 @@ async def get_all(request: Request):
     return response
 
 
-@router.post("/", response_model=ProductOut)
-@auth_required
+@router.post("/", dependencies=[Depends(auth_required)], response_model=ProductOut, description="Add a new product to inventory.")
 async def create(request: Request, product_data: ProductCreate):
     try:
         product: Product = create_product(product_data)
@@ -29,8 +27,7 @@ async def create(request: Request, product_data: ProductCreate):
     return ProductOut.from_orm(product)
 
 
-@router.put("/{product_id}", response_model=ProductOut)
-@auth_required
+@router.put("/{product_id}", dependencies=[Depends(auth_required)], response_model=ProductOut, description="Update product information.")
 async def update(request: Request, product_id: int, product_data: ProductCreate):
     try:
         product: Product = update_product(product_id, product_data)
@@ -39,8 +36,7 @@ async def update(request: Request, product_id: int, product_data: ProductCreate)
         raise exception
 
 
-@router.delete("/{product_id}", response_model=dict)
-@auth_required
+@router.delete("/{product_id}", dependencies=[Depends(auth_required)], response_model=dict, description="Remove a product from inventory.")
 async def delete(request: Request, product_id: int):
     try:
         deleted: bool = delete_product(product_id)
@@ -52,8 +48,7 @@ async def delete(request: Request, product_id: int):
         raise exception
 
 
-@router.get("/{product_id}", response_model=ProductOut)
-@auth_required
+@router.get("/{product_id}", dependencies=[Depends(auth_required)], response_model=ProductOut, description="View product details.")
 async def get(request: Request, product_id: int):
     try:
         product: Product = get_product(product_id)

@@ -10,7 +10,12 @@ sentry_sdk.init(
     send_default_pii=True
 )
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="This is a RESTful API designed to manage a company's stock and sales operations. It includes core "
+                "tables for Clients, Products, and Orders, allowing efficient tracking of inventory, customer data, "
+                "and transaction history.")
 
 
 app.include_router(user.router, prefix="/auth", tags=["Users"])

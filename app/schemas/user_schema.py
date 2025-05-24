@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
 
 
@@ -8,15 +8,15 @@ class AccessLevel(str, Enum):
 
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    access: AccessLevel
+    username: str = Field(example="john_smith")
+    password: str = Field(example="password")
+    access: AccessLevel = Field(example="Admin")
 
 
 class UserOut(BaseModel):
-    id: int
-    username: str
-    access: AccessLevel
+    id: int = Field(example=1)
+    username: str = Field(example="john_smith")
+    access: AccessLevel = Field(example="Admin")
 
     class Config:
-        orm_mode = True
+            orm_mode = True

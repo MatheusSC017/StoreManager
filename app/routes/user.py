@@ -6,14 +6,13 @@ from app.schemas.user_schema import UserCreate, UserOut
 from app.controllers.user_controller import create_user, get_user
 from app.auth.jwt_handler import create_token, verify_token
 from app.core.security import check_password
+from app.auth.authentication import admin_required
 from app.schemas.auth_schema import TokenResponse, TokenType, RefreshRequest
-from app.auth.decorators import admin_required
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserOut)
-@admin_required
+@router.post("/register", dependencies=[Depends(admin_required)], response_model=UserOut, description="New user registration (Only admin access).")
 async def create(request: Request, user_data: UserCreate):
     try:
         user: User = create_user(user_data)
@@ -26,7 +25,7 @@ async def create(request: Request, user_data: UserCreate):
         raise HTTPException(status_code=400, detail="Username already in use.")
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, description="User authentication.")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user: User = get_user(form_data.username)
     if not check_password(form_data.password, user.hashed_password):
@@ -39,13 +38,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", response_model=TokenResponse, description="JWT token refresh.")
 def refresh(request: RefreshRequest):
     payload = verify_token(request.refresh_token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    user_data = {"user": payload["user"], "username": payload["username"], "access": user.access}
+    user_data = {"user": payload["user"], "username": payload["username"], "access": payload["access"]}
     return TokenResponse(
         access_token=create_token(user_data, TokenType.ACCESS),
         refresh_token=create_token(user_data, TokenType.REFRESH)

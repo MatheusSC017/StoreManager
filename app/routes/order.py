@@ -1,16 +1,15 @@
 from sqlalchemy.exc import IntegrityError
 from app.models.order import Order
+from app.auth.authentication import auth_required
 from app.schemas.order_schema import OrderCreate, OrderOut, ProductQuantity
 from app.controllers.order_controller import create_order, update_order, delete_order, get_order, get_orders
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import Depends, APIRouter, HTTPException, Request
 from typing import List
-from app.auth.decorators import auth_required
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[OrderOut])
-@auth_required
+@router.get("/", dependencies=[Depends(auth_required)], response_model=List[OrderOut], description="List all sales orders.")
 async def get_all(request: Request):
     orders: List[Order] = get_orders()
     response: List[OrderOut] = []
@@ -27,8 +26,7 @@ async def get_all(request: Request):
     return response
 
 
-@router.post("/", response_model=OrderOut)
-@auth_required
+@router.post("/", dependencies=[Depends(auth_required)], response_model=OrderOut, description="Register a new order (stock is automatically updated).")
 async def create(request: Request, order_data: OrderCreate):
     try:
         order: Order = create_order(order_data)
@@ -51,8 +49,7 @@ async def create(request: Request, order_data: OrderCreate):
     return response
 
 
-@router.put("/{order_id}", response_model=OrderOut)
-@auth_required
+@router.put("/{order_id}", dependencies=[Depends(auth_required)], response_model=OrderOut, description="Modify an existing order.")
 async def update(request: Request, order_id: int, order_data: OrderCreate):
     try:
         order: Order = update_order(order_id, order_data)
@@ -69,8 +66,7 @@ async def update(request: Request, order_id: int, order_data: OrderCreate):
         raise exception
 
 
-@router.delete("/{order_id}", response_model=dict)
-@auth_required
+@router.delete("/{order_id}", dependencies=[Depends(auth_required)], response_model=dict, description="Cancel an order (automatically restore stock).")
 async def delete(request: Request, order_id: int):
     try:
         deleted: bool = delete_order(order_id)
@@ -82,8 +78,7 @@ async def delete(request: Request, order_id: int):
         raise exception
 
 
-@router.get("/{order_id}", response_model=OrderOut)
-@auth_required
+@router.get("/{order_id}", dependencies=[Depends(auth_required)], response_model=OrderOut, description="View details of a specific order.")
 async def get(request: Request, order_id: int):
     try:
         order: Order = get_order(order_id)
