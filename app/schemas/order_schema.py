@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import date as dt_date
 from typing import List
 from enum import Enum
@@ -10,23 +10,22 @@ class OrderStatus(str, Enum):
 
 
 class ProductQuantity(BaseModel):
-    product_id: int = Field(example=1)
-    quantity: int = Field(example=10)
+    product_id: int = Field(json_schema_extra={"example": 1})
+    quantity: int = Field(json_schema_extra={"example": 10})
 
 
 class OrderCreate(BaseModel):
-    client_id: int = Field(example=1)
-    date: dt_date = Field(example="2025-05-23")
-    status: OrderStatus = Field(example="Pending")
-    products: List[ProductQuantity] = Field(example=[{"product_id": 1, "quantity": 10}, ])
+    client_id: int = Field(json_schema_extra={"example": 1})
+    date: dt_date = Field(json_schema_extra={"example": "2025-05-23"})
+    status: OrderStatus = Field(json_schema_extra={"example": "Pending"})
+    products: List[ProductQuantity] = Field(json_schema_extra={"example": [{"product_id": 1, "quantity": 10}, ]})
 
 
 class OrderOut(BaseModel):
-    id: int = Field(example=1)
-    client_id: int = Field(example=1)
-    date: dt_date = Field(example="2025-05-23")
-    status: OrderStatus = Field(example="Pending")
-    products: List[ProductQuantity] = Field(example=[{"product_id": 1, "quantity": 10}, ])
+    id: int = Field(json_schema_extra={"example": 1})
+    client_id: int = Field(json_schema_extra={"example": 1})
+    date: dt_date = Field(json_schema_extra={"example": "2025-05-23"})
+    status: OrderStatus = Field(json_schema_extra={"example": "Pending"})
+    products: List[ProductQuantity] = Field(json_schema_extra={"example": [{"product_id": 1, "quantity": 10}, ]})
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

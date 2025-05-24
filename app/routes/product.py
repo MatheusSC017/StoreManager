@@ -9,34 +9,53 @@ from typing import List
 router = APIRouter()
 
 
-@router.get("/", dependencies=[Depends(auth_required)], response_model=List[ProductOut], description="Retrieve all products in stock.")
+@router.get(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=List[ProductOut],
+    description="Retrieve all products in stock.")
 async def get_all(request: Request):
     products: List[Product] = get_products()
     response = []
     for product in products:
-        response.append(ProductOut.from_orm(product))
+        response.append(product)
     return response
 
 
-@router.post("/", dependencies=[Depends(auth_required)], response_model=ProductOut, description="Add a new product to inventory.")
+@router.post(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=ProductOut,
+    status_code=201,
+    description="Add a new product to inventory.")
 async def create(request: Request, product_data: ProductCreate):
     try:
         product: Product = create_product(product_data)
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Barcode already in use.")
-    return ProductOut.from_orm(product)
+    return product
 
 
-@router.put("/{product_id}", dependencies=[Depends(auth_required)], response_model=ProductOut, description="Update product information.")
+@router.put(
+    "/{product_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=ProductOut,
+    status_code=202,
+    description="Update product information.")
 async def update(request: Request, product_id: int, product_data: ProductCreate):
     try:
         product: Product = update_product(product_id, product_data)
-        return ProductOut.from_orm(product)
+        return product
     except HTTPException as exception:
         raise exception
 
 
-@router.delete("/{product_id}", dependencies=[Depends(auth_required)], response_model=dict, description="Remove a product from inventory.")
+@router.delete(
+    "/{product_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=dict,
+    status_code=202,
+    description="Remove a product from inventory.")
 async def delete(request: Request, product_id: int):
     try:
         deleted: bool = delete_product(product_id)
@@ -48,10 +67,15 @@ async def delete(request: Request, product_id: int):
         raise exception
 
 
-@router.get("/{product_id}", dependencies=[Depends(auth_required)], response_model=ProductOut, description="View product details.")
+@router.get(
+    "/{product_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=ProductOut,
+    description="View product details."
+)
 async def get(request: Request, product_id: int):
     try:
         product: Product = get_product(product_id)
     except HTTPException as exception:
         raise exception
-    return ProductOut.from_orm(product)
+    return product

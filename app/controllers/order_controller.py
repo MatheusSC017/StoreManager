@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from app.models.order import Order, OrderProduct
 from app.models.product import Product
+from app.models.client import Client
 from app.schemas.order_schema import OrderCreate
 from app.db.session import SessionLocal
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,6 +12,10 @@ from typing import List
 def create_order(order_data: OrderCreate) -> Order:
     with SessionLocal() as db:
         try:
+            client = db.query(Client).filter(Client.id == order_data.client_id).first()
+            if not client:
+                raise HTTPException(status_code=404, detail=f"Client {order_data.client_id} not found")
+
             order = Order(client_id=order_data.client_id, date=order_data.date, status=order_data.status)
             db.add(order)
             db.flush()

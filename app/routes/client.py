@@ -9,10 +9,14 @@ from typing import List
 router = APIRouter()
 
 
-@router.get("/", dependencies=[Depends(auth_required)], response_model=List[ClientOut], description="Retrieve a list of all clients.")
+@router.get(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=List[ClientOut],
+    description="Retrieve a list of all clients.")
 async def get_all(request: Request):
     clients: List[Client] = get_clients()
-    response = []
+    response: List[ClientOut] = []
     for client in clients:
         response.append(ClientOut(
             id=client.id,
@@ -26,7 +30,12 @@ async def get_all(request: Request):
     return response
 
 
-@router.post("/", dependencies=[Depends(auth_required)], response_model=ClientOut, description="Create a new client.")
+@router.post(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=ClientOut,
+    status_code=201,
+    description="Create a new client.")
 async def create(request: Request, client_data: ClientCreate):
     try:
         client: Client = create_client(client_data)
@@ -35,7 +44,12 @@ async def create(request: Request, client_data: ClientCreate):
     return client
 
 
-@router.put("/{client_id}", dependencies=[Depends(auth_required)], response_model=ClientOut, description="Update a client's information.")
+@router.put(
+    "/{client_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=ClientOut,
+    status_code=202,
+    description="Update a client's information.")
 async def update(request: Request, client_id: int, client_data: ClientCreate):
     try:
         client: Client = update_client(client_id, client_data)
@@ -52,7 +66,12 @@ async def update(request: Request, client_id: int, client_data: ClientCreate):
         raise exception
 
 
-@router.delete("/{client_id}", dependencies=[Depends(auth_required)], response_model=dict, description="Delete a client.")
+@router.delete(
+    "/{client_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=dict,
+    status_code=202,
+    description="Delete a client.")
 async def delete(request: Request, client_id: int):
     try:
         deleted: bool = delete_client(client_id)
@@ -64,7 +83,11 @@ async def delete(request: Request, client_id: int):
         raise exception
 
 
-@router.get("/{client_id}", dependencies=[Depends(auth_required)], response_model=ClientOut, description="Get details of a specific client.")
+@router.get(
+    "/{client_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=ClientOut,
+    description="Get details of a specific client.")
 async def get(request: Request, client_id: int):
     try:
         client: Client = get_client(client_id)

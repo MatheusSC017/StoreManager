@@ -9,7 +9,11 @@ from typing import List
 router = APIRouter()
 
 
-@router.get("/", dependencies=[Depends(auth_required)], response_model=List[OrderOut], description="List all sales orders.")
+@router.get(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=List[OrderOut],
+    description="List all sales orders.")
 async def get_all(request: Request):
     orders: List[Order] = get_orders()
     response: List[OrderOut] = []
@@ -26,7 +30,12 @@ async def get_all(request: Request):
     return response
 
 
-@router.post("/", dependencies=[Depends(auth_required)], response_model=OrderOut, description="Register a new order (stock is automatically updated).")
+@router.post(
+    "/",
+    dependencies=[Depends(auth_required)],
+    response_model=OrderOut,
+    status_code=201,
+    description="Register a new order (stock is automatically updated).")
 async def create(request: Request, order_data: OrderCreate):
     try:
         order: Order = create_order(order_data)
@@ -39,17 +48,17 @@ async def create(request: Request, order_data: OrderCreate):
                 ProductQuantity(product_id=item.product_id, quantity=item.quantity) for item in order.order_products
             ]
         )
-    except IntegrityError:
-        raise HTTPException(status_code=400, detail="Barcode already in use.")
     except HTTPException as exception:
         raise exception
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=400, detail="Failed to register order.")
     return response
 
 
-@router.put("/{order_id}", dependencies=[Depends(auth_required)], response_model=OrderOut, description="Modify an existing order.")
+@router.put(
+    "/{order_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=OrderOut,
+    status_code=202,
+    description="Modify an existing order.")
 async def update(request: Request, order_id: int, order_data: OrderCreate):
     try:
         order: Order = update_order(order_id, order_data)
@@ -66,7 +75,12 @@ async def update(request: Request, order_id: int, order_data: OrderCreate):
         raise exception
 
 
-@router.delete("/{order_id}", dependencies=[Depends(auth_required)], response_model=dict, description="Cancel an order (automatically restore stock).")
+@router.delete(
+    "/{order_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=dict,
+    status_code=202,
+    description="Cancel an order (automatically restore stock).")
 async def delete(request: Request, order_id: int):
     try:
         deleted: bool = delete_order(order_id)
@@ -78,7 +92,11 @@ async def delete(request: Request, order_id: int):
         raise exception
 
 
-@router.get("/{order_id}", dependencies=[Depends(auth_required)], response_model=OrderOut, description="View details of a specific order.")
+@router.get(
+    "/{order_id}",
+    dependencies=[Depends(auth_required)],
+    response_model=OrderOut,
+    description="View details of a specific order.")
 async def get(request: Request, order_id: int):
     try:
         order: Order = get_order(order_id)
