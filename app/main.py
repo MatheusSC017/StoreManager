@@ -1,6 +1,7 @@
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.routes import user, client, product, order
 from app.core.config import settings
 
@@ -17,6 +18,8 @@ app = FastAPI(
                 "tables for Clients, Products, and Orders, allowing efficient tracking of inventory, customer data, "
                 "and transaction history.")
 
+
+app.mount("/images", StaticFiles(directory="static/images"), name="images")
 
 app.include_router(user.router, prefix="/auth", tags=["Users"])
 app.include_router(client.router, prefix="/clients", tags=["Clients"])

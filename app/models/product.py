@@ -1,6 +1,16 @@
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.session import Base
+
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"))
+
+    product = relationship("Product", back_populates="images")
 
 
 class Product(Base):
@@ -15,3 +25,4 @@ class Product(Base):
     expiration_date = Column(Date, nullable=True)
 
     order_products = relationship("OrderProduct", back_populates="product")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")

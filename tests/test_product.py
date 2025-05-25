@@ -7,7 +7,8 @@ fake_product = {
         "barcode": "567671948894",
         "section": "Section B",
         "stock": 250,
-        "expiration_date": "2025-07-24"
+        "expiration_date": "2025-07-24",
+        'images': []
     }
 
 
@@ -16,7 +17,7 @@ def test_create_product(mock_create, client):
     new_product = fake_product.copy()
     del new_product["id"]
 
-    response = client.post("/products", json=new_product)
+    response = client.post("/products", data=new_product)
 
     assert response.status_code == 201
     assert response.json() == fake_product
@@ -27,7 +28,7 @@ def test_update_product(mock_create, client):
     product_data = fake_product.copy()
     product_id = product_data.pop("id")
 
-    response = client.put(f"/products/{product_id}", json=product_data)
+    response = client.put(f"/products/{product_id}", data=product_data)
 
     assert response.status_code == 202
     assert response.json() == fake_product

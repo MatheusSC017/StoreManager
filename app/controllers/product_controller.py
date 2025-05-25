@@ -1,26 +1,46 @@
-from fastapi import HTTPException
-
-from app.models.product import Product
+from fastapi import HTTPException, UploadFile
+from app.models.product import Product, ProductImage
 from app.schemas.product_schema import ProductCreate
 from app.db.session import SessionLocal
-from typing import List
+from sqlalchemy.orm import selectinload
+from typing import List, Optional
+import os, shutil
 
 
-def create_product(product_data: ProductCreate) -> Product:
+UPLOAD_DIR = "static/images"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+def create_product(product_data: ProductCreate, images: Optional[List[UploadFile]] = None) -> Product:
     with SessionLocal() as db:
         product = Product(description=product_data.description, value=product_data.value, barcode=product_data.barcode,
                           section=product_data.section, stock=product_data.stock, expiration_date=product_data.expiration_date)
         db.add(product)
+        db.flush()
+
+        if images:
+            for image in images:
+                filename = f"{product.id}_{image.filename}"
+                filepath = os.path.join(UPLOAD_DIR, filename)
+
+                with open(filepath, "wb") as f:
+                    shutil.copyfileobj(image.file, f)
+
+                image_entry = ProductImage(filename=f"/images/{filename}", product_id=product.id)
+                db.add(image_entry)
+
         db.commit()
-        db.refresh(product)
-        return product
+        product_with_images = db.query(Product).options(
+            selectinload(Product.images).selectinload(ProductImage.product)
+        ).filter(Product.id == product.id).first()
+
+        return product_with_images
 
 
-def update_product(product_id: int, product_data: ProductCreate) -> Product:
+def update_product(product_id: int, product_data: ProductCreate, images: Optional[List[UploadFile]] = None) -> Product:
     with SessionLocal() as db:
         product = db.query(Product).filter(Product.id == product_id).first()
         if not product:
-            db.close()
             raise HTTPException(status_code=404, detail="Product not found")
         product.description = product_data.description
         product.value = product_data.value
@@ -29,9 +49,23 @@ def update_product(product_id: int, product_data: ProductCreate) -> Product:
         product.stock = product_data.stock
         product.expiration_date = product_data.expiration_date
 
+        if images:
+            for image in images:
+                filename = f"{product.id}_{image.filename}"
+                filepath = os.path.join(UPLOAD_DIR, filename)
+
+                with open(filepath, "wb") as f:
+                    shutil.copyfileobj(image.file, f)
+
+                image_entry = ProductImage(filename=f"/images/{filename}", product_id=product.id)
+                db.add(image_entry)
+
         db.commit()
-        db.refresh(product)
-        return product
+        product_with_images = db.query(Product).options(
+            selectinload(Product.images).selectinload(ProductImage.product)
+        ).filter(Product.id == product.id).first()
+
+        return product_with_images
 
 
 def delete_product(product_id: int) -> bool:
@@ -39,8 +73,16 @@ def delete_product(product_id: int) -> bool:
         product = db.query(Product).filter(Product.id == product_id).first()
 
         if not product:
-            db.close()
             raise HTTPException(status_code=404, detail="Product not found")
+
+        for image in product.images:
+            filepath: str = f"static{image.filename}"
+            if image.filename and os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                except Exception as e:
+                    print(e)
+                    raise HTTPException(status_code=400, detail="Error deleting image")
 
         db.delete(product)
         db.commit()
@@ -49,13 +91,13 @@ def delete_product(product_id: int) -> bool:
 
 def get_products() -> List[Product]:
     with SessionLocal() as db:
-        product = db.query(Product).all()
+        product = db.query(Product).options(selectinload(Product.images)).all()
         return product
 
 
 def get_product(product_id: int) -> Product:
     with SessionLocal() as db:
-        product = db.query(Product).filter(Product.id == product_id).first()
+        product = db.query(Product).options(selectinload(Product.images)).filter(Product.id == product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
         return product

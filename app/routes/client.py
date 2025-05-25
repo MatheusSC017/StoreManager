@@ -62,6 +62,8 @@ async def update(request: Request, client_id: int, client_data: ClientCreate):
             address=client.address,
             phone=client.phone,
         )
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="E-mail/CPF already in use.")
     except HTTPException as exception:
         raise exception
 

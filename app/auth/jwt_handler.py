@@ -5,12 +5,12 @@ from app.core.config import settings
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+REFRESH_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60
 
 
 def create_token(data: dict, type: TokenType):
     to_encode = data.copy()
-    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES if type == TokenType.ACCESS else REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES if type == TokenType.ACCESS else REFRESH_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
         "expire": expire.isoformat(),
         "type": TokenType.ACCESS if type == TokenType.ACCESS else TokenType.REFRESH
