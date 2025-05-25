@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import date as dt_date
 from typing import Optional, List
+from app.core.config import settings
+import os
 
 
 class ProductCreate(BaseModel):
@@ -16,7 +18,13 @@ class ProductImageOut(BaseModel):
     id: int
     filename: str
 
+    @computed_field
+    def file_path(self) -> str:
+        return os.path.join(settings.STATIC_DIR, self.filename)
+
     model_config = ConfigDict(from_attributes=True)
+
+
 
 
 class ProductOut(BaseModel):

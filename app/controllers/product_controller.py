@@ -4,11 +4,11 @@ from app.schemas.product_schema import ProductCreate
 from app.db.session import SessionLocal
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
+from app.core.config import settings
 import os, shutil
 
 
-UPLOAD_DIR = "static/images"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(settings.STATIC_DIR, exist_ok=True)
 
 
 def create_product(product_data: ProductCreate, images: Optional[List[UploadFile]] = None) -> Product:
@@ -21,12 +21,12 @@ def create_product(product_data: ProductCreate, images: Optional[List[UploadFile
         if images:
             for image in images:
                 filename = f"{product.id}_{image.filename}"
-                filepath = os.path.join(UPLOAD_DIR, filename)
+                filepath = os.path.join(settings.STATIC_DIR, filename)
 
                 with open(filepath, "wb") as f:
                     shutil.copyfileobj(image.file, f)
 
-                image_entry = ProductImage(filename=f"/images/{filename}", product_id=product.id)
+                image_entry = ProductImage(filename=filename, product_id=product.id)
                 db.add(image_entry)
 
         db.commit()
@@ -52,12 +52,12 @@ def update_product(product_id: int, product_data: ProductCreate, images: Optiona
         if images:
             for image in images:
                 filename = f"{product.id}_{image.filename}"
-                filepath = os.path.join(UPLOAD_DIR, filename)
+                filepath = os.path.join(settings.STATIC_DIR, filename)
 
                 with open(filepath, "wb") as f:
                     shutil.copyfileobj(image.file, f)
 
-                image_entry = ProductImage(filename=f"/images/{filename}", product_id=product.id)
+                image_entry = ProductImage(filename=filename, product_id=product.id)
                 db.add(image_entry)
 
         db.commit()
@@ -76,7 +76,7 @@ def delete_product(product_id: int) -> bool:
             raise HTTPException(status_code=404, detail="Product not found")
 
         for image in product.images:
-            filepath: str = f"static{image.filename}"
+            filepath = os.path.join(settings.STATIC_DIR, image.filename)
             if image.filename and os.path.exists(filepath):
                 try:
                     os.remove(filepath)

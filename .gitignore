@@ -185,3 +185,6 @@ fabric.properties
  .idea
 
 static/
+
+.env
+app/.env
