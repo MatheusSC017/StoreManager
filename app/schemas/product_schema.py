@@ -20,11 +20,10 @@ class ProductImageOut(BaseModel):
 
     @computed_field
     def file_path(self) -> str:
-        return os.path.join(settings.STATIC_DIR, self.filename)
+        images_folder = os.path.basename(settings.STATIC_DIR)
+        return os.path.join(images_folder, self.filename)
 
     model_config = ConfigDict(from_attributes=True)
-
-
 
 
 class ProductOut(BaseModel):
