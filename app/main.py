@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from app.routes import user, client, product, order
 from app.core.config import settings
+from app.start_db import init_db
 
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
@@ -15,8 +16,13 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="This is a RESTful API designed to manage a company's stock and sales operations. It includes core "
-                "tables for Clients, Products, and Orders, allowing efficient tracking of inventory, customer data, "
-                "and transaction history.")
+                "tables for Users, Clients, Products, and Orders, allowing efficient tracking of inventory, customer "
+                "data, and transaction history.")
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 
 app.mount("/images", StaticFiles(directory="static/images"), name="images")

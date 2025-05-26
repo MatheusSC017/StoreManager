@@ -28,7 +28,7 @@ async def create(request: Request, user_data: UserCreate):
 @router.post("/login", response_model=TokenResponse, description="User authentication.")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user: User = get_user(form_data.username)
-    if not check_password(form_data.password, user.hashed_password):
+    if user and not check_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     user_data = {"user": str(user.id), "username": user.username, "access": user.access}
